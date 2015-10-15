@@ -1,0 +1,47 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                 
+xmlns:ui="http://java.sun.com/jsf/facelets"
+xmlns:f="http://java.sun.com/jsf/core"
+xmlns:h="http://java.sun.com/jsf/html"
+xmlns:c="http://java.sun.com/jsp/jstl/core"
+xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+template="/templates/template.xhtml"
+xmlns:p="http://primefaces.org/ui"> 
+    
+    <ui:define name="content"> 
+       
+        
+    <h:form id="form">
+        <p:treeTable id="tableCategories" var="categorie" value="#{TbCategorieService.root}" selectionMode="single" nodeVar="#{categorie.idCategorie}" selection="#{TbCategorieService.selectedCategorie}">
+            <f:facet name="header">
+                Liste des catégories
+            </f:facet>
+             <p:ajax event="select" update=":form:categorieDetail" />
+            <p:column headerText="Id">
+                <h:outputText value="#{categorie.idCategorie}" />
+            </p:column>
+            <p:column headerText="Libellé">
+                <h:outputText value="#{categorie.CLibelle}" />
+            </p:column>
+            <f:facet name="footer">
+                <p:commandButton update=":form:tableCategories" icon="ui-icon-plusthick" value="Ajouter" actionListener="#{TbCategorieService.createCategorie()}" />
+                <p:commandButton update=":form:categorieDetail" icon="ui-icon-search" value="Editer" oncomplete="PF('categorieDialog').show()" disabled="#{empty TbCategorieService.selectedCategorie}" />
+                <p:commandButton update=":form:tableCategories" icon="ui-icon-closethick" value="Supprimer" actionListener="#{TbCategorieService.deleteCategorie(TbCategorieService.selectedCategorie)}" disabled="#{empty TbCategorieService.selectedCategorie}" />
+            </f:facet>
+
+        </p:treeTable>
+
+        <p:dialog header="Détail categorie" widgetVar="categorieDialog" showEffect="fade" hideEffect="fade" resizable="true" height="100" width="450" >
+            <p:outputPanel id="categorieDetail" >
+                <p:panelGrid columns="2" rendered="#{not empty TbCategorieService.selectedCategorie}" columnClasses="label,value"> 
+                    <h:outputText value="Libellé" />
+                    <h:inputText value="#{TbCategorieService.selectedCategorie.SLibelle}" style="width: 300px;" />
+                </p:panelGrid>
+                <br/>
+                <p:commandButton update=":form:tableCategories" icon="ui-icon-search" value="Enregistrer"  actionListener="#{TbCategorieService.saveCategorie(TbCategorieService.selectedCategorie)}" onsuccess="PF('categorieDialog').hide()" style="text-align: center;"/>
+            </p:outputPanel>
+        </p:dialog>
+    </h:form>
+</ui:define>
+
+</ui:composition>

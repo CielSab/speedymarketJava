@@ -1,0 +1,109 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+       xmlns:ui="http://java.sun.com/jsf/facelets"
+       xmlns:f="http://java.sun.com/jsf/core"
+       xmlns:h="http://java.sun.com/jsf/html"
+       xmlns:c="http://java.sun.com/jsp/jstl/core"
+       xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+       template="/templates/template.xhtml"
+       xmlns:p="http://primefaces.org/ui">
+    
+       <ui:define name="content">
+        <h:form id="form">
+           
+            <p:dataTable id="tableCommandes" widgetVar="commandesTable" var="commande" value="#{TbCommandeService.loadCommandes()}" rows="20" paginator="true" 
+                         selectionMode="single" selection="#{TbCommandeService.selectedCommande}" rowKey="#{commande.idCommande}" editable="true" >
+                <f:facet name="header">
+                    Liste des commandes
+                </f:facet>
+                <p:ajax event="rowSelect" update=":form" />
+                <p:column filterBy="#{commande.idCommande}" headerText="Id" filterMatchMode="contains">
+                    <h:outputText value="#{commande.idCommande}" />
+                </p:column>
+                <p:column filterBy="#{commande.tbStatut}" headerText="Statut" filterMatchMode="exact">
+                    <f:facet name="filter">
+                        <p:selectOneMenu onchange="PF('commandesTable').filter()" >
+                            <f:selectItem itemLabel="---" itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItems value="#{TbStatutService.loadStatut()}"  />
+                        </p:selectOneMenu>
+                    </f:facet>
+                    <h:outputText value="#{commande.tbStatut.SLibelle}" />
+                </p:column>
+                <p:column headerText="Client">
+                    <h:outputText value="#{commande.tbPersonneByClientIdPers.PNom} - #{commande.tbPersonneByClientIdPers.PPrenom}" />
+                </p:column>
+                <p:column headerText="Préparateur">
+                    <h:outputText value="#{commande.tbPersonneByPrepaIdPers.PNom} - #{commande.tbPersonneByPrepaIdPers.PPrenom}" />
+                </p:column>
+                <p:column headerText="Date">
+                    <h:outputText value="#{commande.CDate}" />
+                </p:column>
+                <p:column headerText="Date de retrait">
+                    <h:outputText value="#{commande.CDateretrait}" />
+                </p:column>
+
+                <f:facet name="footer">
+                    <p:commandButton update=":form:commandeContenu" icon="ui-icon-search"  value="Visualiser"  oncomplete="PF('contenuCommandeDialog').show()" disabled="#{empty TbCommandeService.selectedCommande}" />
+                    <p:commandButton update=":form:commandeDetail" icon="ui-icon-search" value="Editer" oncomplete="PF('commandeDialog').show()" disabled="#{empty TbCommandeService.selectedCommande}" />
+                </f:facet>
+                
+            </p:dataTable>
+
+            <p:dialog header="Contenu commande" widgetVar="contenuCommandeDialog" showEffect="fade" hideEffect="fade" resizable="false" minHeight="40" >
+                <p:outputPanel id="commandeContenu" style="text-align:left;">
+                    <p:panelGrid  columns="1" rendered="#{not empty TbCommandeService.selectedCommande}" columnClasses="label,value">
+                        <h:outputText value="Commande #{TbCommandeService.selectedCommande.idCommande}" />
+
+                        <p:dataList value="#{TbCommandeService.selectedCommande.tbLigneCommandes}" 
+                                    var="ligneCde" type="definition" >
+                            <f:facet name="header">
+                                Liste des articles
+                            </f:facet>
+                            
+                            <h:outputText value="#{ligneCde.qteCmde} - #{ligneCde.tbArticle.ADesignation}" />
+                            
+                        </p:dataList>
+      
+                    </p:panelGrid>
+                </p:outputPanel>
+            </p:dialog>
+            
+            <p:dialog header="Détail commande" widgetVar="commandeDialog" showEffect="fade" hideEffect="fade" resizable="true" height="260" width="580" >
+                <p:outputPanel id="commandeDetail" >
+                    <p:panelGrid  columns="2" rendered="#{not empty TbCommandeService.selectedCommande}" columnClasses="label,value">
+                        <h:outputText value="Id" />
+                        <h:outputText value="#{TbCommandeService.selectedCommande.idCommande}" />
+                        
+                        <h:outputText value="Statut" />
+                        <p:autoComplete id="selectStatut" value="#{TbCommandeService.selectedCommande.tbStatut}" completeMethod="#{TbStatutService.loadStatut()}"
+                                        var="statut" itemLabel="#{statut.SLibelle}" itemValue="#{statut}" converter="#{StatutConverter}" forceSelection="true" dropdown="true" style="width:400px;" />
+                        
+                        <h:outputText value="Client" />
+                        <p:autoComplete id="selectClient" value="#{TbCommandeService.selectedCommande.tbPersonneByClientIdPers}" completeMethod="#{TbPersonneService.loadPersonnes()}"
+                            var="client" itemLabel="#{client.PNom}" itemValue="#{client}" converter="#{PersonneConverter}" forceSelection="true" dropdown="true" style="width:400px;" />
+
+                        <h:outputText value="Préparateur" />
+                        <p:autoComplete id="selectPreparateur" value="#{TbCommandeService.selectedCommande.tbPersonneByPrepaIdPers}" completeMethod="#{TbPersonneService.loadPersonnes()}"
+                            var="preparateur" itemLabel="#{preparateur.PNom}" itemValue="#{preparateur}" converter="#{PersonneConverter}" forceSelection="true" dropdown="true" style="width:400px;" />
+
+                        <h:outputText value="Date de commande" />
+                        <h:outputText value="#{TbCommandeService.selectedCommande.CDate}" />
+                        
+                        <h:outputText value="Date de retrait" />
+                        <p:calendar id="calendarRetrait" value="#{TbCommandeService.selectedCommande.CDateretrait}" />
+                        
+                        <br/>
+
+                        <p:commandButton update=":form:tableCommandes" icon="ui-icon-search" value="Enregistrer" 
+                                     actionListener="#{TbCommandeService.saveCommande(TbCommandeService.selectedCommande)}"
+                                     onsuccess="PF('commandeDialog').hide()"
+                                     style="text-align: center;"/>
+
+                        
+                    </p:panelGrid>
+                </p:outputPanel>
+            </p:dialog>
+            
+        </h:form>
+        
+    </ui:define>
+</ui:composition>
